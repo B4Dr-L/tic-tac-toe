@@ -1,8 +1,13 @@
 import { useEffect, useState } from "react";
+import Board from "./Board";
+import ScoreBoard from "./ScoreBoard";
+import HistoryDisplay from "./HistoryDisplay";
 
 function App() {
-    const [board, setBoard] = useState(Array(9).fill(null))
-    const [xTurn, setXTurn] = useState(true)
+    const [history, setHistory] = useState([Array(9).fill(null)])
+    const [currIndex, setCurrIndex] = useState(0)
+    let xTurn = currIndex % 2 === 0
+    
     const [score, setScore] = useState(()=>
         JSON.parse(localStorage.getItem('score')) ?? { X: 0, O: 0, Tie: 0 }
     )
@@ -10,6 +15,11 @@ function App() {
     useEffect(()=>{
         localStorage.setItem('score', JSON.stringify(score))
     },[score])
+    
+    let board = history[currIndex]
+    
+    console.log("history:",history)
+    console.log("currIndex",currIndex)
 
     const checkWin = (currentBoard) => {
         const POSSIBLE_WINNING_POSITIONS = [
@@ -25,7 +35,7 @@ function App() {
             }
         )
 
-        //if winner
+        //check if there is any winning positions
         if (winningPositions.length > 0){
             return {
                 status:'win',
@@ -43,26 +53,52 @@ function App() {
 
     let gameResult = checkWin(board)
 
-    const handleClick = (index) => {
+    const handleCurrIndex = (index) => {
+        setCurrIndex(index)
+    }
+
+    const appendHistory = (newBoard) =>{
+        setHistory([...history.slice(0, currIndex + 1), newBoard]);
+        setCurrIndex(currIndex+1)
+    }
+
+    const handleClickSquare = (index) => {
+        //ignore click if square is full, or the game has ended
         if (board[index] !== null || gameResult.status !== 'onGoing') return;
+
         let newBoard = [...board]
         newBoard[index] = xTurn ? 'X' : 'O'
-        setBoard(newBoard)
-        setXTurn(!xTurn)
+        appendHistory(newBoard)
+    };
 
-        const nextResult = checkWin(newBoard)
-        if (nextResult.status === 'win'){
+    const handleResetScore = () => {
+        setScore({ X: 0, O: 0, Tie: 0 })
+    }
+
+    const handleRestart = () =>{
+        setHistory([Array(9).fill(null)])
+        setCurrIndex(0)
+
+        //check if the game ended and update the score
+        if (gameResult.status === 'win'){
             setScore(prevScore => ({
                 ...prevScore,
-                [nextResult.winner]: prevScore[nextResult.winner] + 1
+                [gameResult.winner]: prevScore[gameResult.winner] + 1
             }))
-        } else if (nextResult.status === 'tie') {
+        } else if (gameResult.status === 'tie') {
             setScore(prevScore => ({
                 ...prevScore,
                 Tie: prevScore.Tie + 1
             }))
         }
-    };
+    }
+
+    //returns a dynamic temporary score (could change because history) before commiting when clicking restart
+    const displayScore = {
+    X: score.X + (gameResult.status === 'win' && gameResult.winner === 'X' ? 1 : 0),
+    O: score.O + (gameResult.status === 'win' && gameResult.winner === 'O' ? 1 : 0),
+    Tie: score.Tie + (gameResult.status === 'tie' ? 1 : 0),
+};
 
     return (
         <div className="grid grid-rows-[20%_60%_20%] grid-cols-[30%_40%_30%] h-screen w-screen">
@@ -71,35 +107,14 @@ function App() {
                 {gameResult.status === "win" && <h2 className="text-5xl text-green-500 font-bold flex justify-center items-center">{gameResult.winner} is the Winner</h2>}
                 {gameResult.status === "tie" && <h2 className="text-5xl font-bold flex justify-center items-center">It is a Tie</h2>}
             </div>
-            <div className="flex flex-col justify-center items-center bg-neutral-200 p-4">
-                <h3 className="text-4xl font-bold">Score</h3>
-                <p className="text-3xl">X: {score.X}</p>
-                <p className="text-3xl">O: {score.O}</p>
-                <p className="text-3xl">Tie: {score.Tie}</p>
-            </div>
-            <div className="flex justify-center items-center">
-                <Board board={board} handleClick={handleClick} gameResult={gameResult}/>
-            </div>
-            <div></div>
+            <ScoreBoard score={displayScore} handleResetScore={handleResetScore}/>
+            <Board board={board} handleClick={handleClickSquare} gameResult={gameResult}/>
+            <HistoryDisplay history={history} handleCurrIndex={handleCurrIndex}/>
             <div className="col-span-3 flex justify-center items-center">
-                {gameResult.status !== "onGoing" && <button onClick={()=>{setBoard(Array(9).fill(null))}} className="text-5xl font-bold flex justify-center items-center cursor-pointer border-4 px-2 py-1 hover:bg-neutral-100 active:bg-neutral-200 rounded-xl">Restart</button>}
+                {gameResult.status !== "onGoing" && <button onClick={handleRestart} className="text-4xl text-neutral-700 font-bold cursor-pointer border-4 border-neutral-600 px-2 py-1 bg-neutral-200 hover:bg-neutral-100 active:bg-neutral-200 rounded-lg">Restart</button>}
             </div>
         </div>
     );
 }
 
 export default App
-
-function Board({board,handleClick,gameResult}){
-    return (
-        <div className="grid grid-cols-3">
-            {console.log(gameResult)}
-            {board.map((square, index)=> <Square key={index} value={square} disabled={square !== null || gameResult.status !=='onGoing'} winner={gameResult.status ==='win' && gameResult.pos.includes(index)} onClick= {() => {handleClick(index)}}/>)}
-        </div>
-    );
-}
-
-
-function Square({value,disabled,winner,onClick}){
-    return <div onClick={onClick} className={`border-3 w-32 h-32 text-8xl flex items-center justify-center select-none font-bold ${disabled || 'cursor-pointer hover:bg-neutral-200'} ${winner && 'text-green-500'}`} >{value !== null && value}</div>
-}
