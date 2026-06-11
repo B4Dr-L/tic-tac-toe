@@ -1,16 +1,58 @@
-# React + Vite
+# Tic-Tac-Toe with Minimax AI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A functional Tic-Tac-Toe application built with React and Tailwind CSS. This project supports standard local two-player matches as well as a single-player mode against an AI opponent powered by the Minimax algorithm.
 
-Currently, two official plugins are available:
+[Test the Live Demo](https://B4Dr-L.github.io/tic-tac-toe/)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- **Game Modes:** Supports local player-vs-player matches and player-vs-AI matches. When playing against the AI, players can select whether the AI plays as X or O.
+- **Minimax AI:** Single-player functionality driven by a recursive Minimax algorithm that calculates optimal moves based on the current board state.
+- **Move History:** A time-travel feature that tracks and lists past turns, allowing players to review or jump back to a previous board state during a match.
+- **Persistent Scoreboard:** Tracks total wins for X, wins for O, and ties. Scores are synchronized with `localStorage` to ensure statistics persist after page refreshes.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Technical Stack
 
-## Expanding the ESLint configuration
+- **Library:** React (Functional components, Hooks)
+- **Styling:** Tailwind CSS
+- **Build Utility:** Vite
+- **State & Persistence:** React State, Effects, and the browser LocalStorage API
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Project Structure
+
+The core codebase is organized within the `src` directory:
+
+```plaintext
+src/
+├── components/
+│   ├── Board.jsx          # Grid layout rendering and cell components
+│   ├── Gamemode.jsx       # Controls for toggling opponent configurations
+│   ├── HistoryDisplay.jsx # Navigation panel for reviewing past turns
+│   └── ScoreBoard.jsx     # Displays current match statistics and score resets
+├── App.jsx            # Main state management and core game logic
+├── index.css          # Global Tailwind CSS styles
+├── main.jsx           # Application entry point
+└── minimax.js         # Minimax algorithm decision tree logic
+```
+
+## Getting Started
+
+To run this project locally, complete the following steps:
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/B4Dr-L/tic-tac-toe.git
+cd tic-tac-toe
+```
+
+### 2. Install dependencies
+```bash
+npm install
+```
+
+### 3. Start the development server
+```bash
+npm run dev
+```
+
+Open the local address provided in your terminal output (typically `http://localhost:5173`) to view the application.
